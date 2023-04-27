@@ -15,21 +15,23 @@
         state: directory
       register: __singcvmfs_tempdir
 
-    - name: Clone cvmfsexec git repository
-      ansible.builtin.git:
-        repo: https://github.com/cvmfs/cvmfsexec.git
-        dest: "{{ __singcvmfs_tempdir.path }}/cvmfsexec"
-        version: master
+    - name: Download and unarchive singcvmfs
+      ansible.builtin.unarchive:
+        src: "{{ singcvmfs_url }}"
+        dest: "{{ __singcvmfs_tempdir.path }}"
+        remote_src: true
+        extra_opts:
+          - --strip-components=1
 
     - name: Run initial makedist
       ansible.builtin.command: "./makedist -s default"
       args:
-        chdir: "{{ __singcvmfs_tempdir.path }}/cvmfsexec"
+        chdir: "{{ __singcvmfs_tempdir.path }}"
 
     - name: Set options in dist/etc/cvmfs/default.local
       ansible.builtin.template:
         src: default.local.j2
-        dest: "{{ __singcvmfs_tempdir.path }}/cvmfsexec/dist/etc/cvmfs/default.local"
+        dest: "{{ __singcvmfs_tempdir.path }}/dist/etc/cvmfs/default.local"
         mode: "0644"
 
     - name: Create directories in dist
@@ -55,7 +57,7 @@
     - name: Build singcvmfs
       ansible.builtin.command: "./makedist -s -o {{ singcvmfs_path }}"
       args:
-        chdir: "{{ __singcvmfs_tempdir.path }}/cvmfsexec"
+        chdir: "{{ __singcvmfs_tempdir.path }}"
 
   always:
 

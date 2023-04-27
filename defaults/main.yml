@@ -1,5 +1,6 @@
 ---
 
+singcvmfs_url: "https://github.com/cvmfs/cvmfsexec/archive/refs/heads/master.tar.gz"
 singcvmfs_path: "{{ ansible_env.HOME }}/bin/singcvmfs"
 singcvmfs_files: []
 singcvmfs_force_build: false
