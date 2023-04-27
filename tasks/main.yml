@@ -36,7 +36,7 @@
 
     - name: Create directories in dist
       ansible.builtin.file:
-        path: "dist/{{ item.lstrip('/') }}"
+        path: "{{ __singcvmfs_tempdir.path }}/dist/{{ item.lstrip('/') }}"
         state: directory
         mode: "0755"
       loop: "{{ singcvmfs_files | map(attribute='dest') | map('dirname') | unique }}"
@@ -44,7 +44,7 @@
     - name: Copy files to dist
       ansible.builtin.copy:
         src: "{{ item.src }}"
-        dest: "dist/{{ item.dest.lstrip('/') }}"
+        dest: "{{ __singcvmfs_tempdir.path }}/dist/{{ item.dest.lstrip('/') }}"
         mode: "{{ item.mode | default('0644') }}"
       loop: "{{ singcvmfs_files }}"
 
