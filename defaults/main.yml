@@ -1,0 +1,9 @@
+---
+
+singcvmfs_path: "{{ ansible_env.HOME }}/bin/singcvmfs"
+singcvmfs_files: []
+singcvmfs_force_build: false
+
+singcvmfs_local_options:
+  - {key: CVMFS_HTTP_PROXY, value: "auto;DIRECT"}
+  - {key: CVMFS_PAC_URLS, value: "http://grid-wpad/wpad.dat;http://wpad/wpad.dat;http://cernvm-wpad.cern.ch/wpad.dat;http://cernvm-wpad.fnal.gov/wpad.dat"}

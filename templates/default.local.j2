@@ -1,0 +1,3 @@
+{% for item in singcvmfs_local_options %}
+{{ item.key }}={{ item.value | quote }}
+{% endfor %}

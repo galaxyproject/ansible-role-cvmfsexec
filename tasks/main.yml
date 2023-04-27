@@ -1,0 +1,66 @@
+---
+
+- name: Check for singcvmfs existence
+  ansible.builtin.stat:
+    path: "{{ singcvmfs_path }}"
+  register: __singcvmfs_stat
+
+- name: Build block
+  when: singcvmfs_force_build or (__singcvmfs_stat.stat.exists is false)
+  block:
+
+    - name: Create singcvmfs build tempdir
+      ansible.builtin.tempfile:
+        prefix: ansible-singcvmfs-build.
+        state: directory
+      register: __singcvmfs_tempdir
+
+    - name: Clone cvmfsexec git repository
+      ansible.builtin.git:
+        repo: https://github.com/cvmfs/cvmfsexec.git
+        dest: "{{ __singcvmfs_tempdir.path }}/cvmfsexec"
+        version: master
+
+    - name: Run initial makedist
+      ansible.builtin.command: "./makedist -s default"
+      args:
+        chdir: "{{ __singcvmfs_tempdir.path }}/cvmfsexec"
+
+    - name: Set options in dist/etc/cvmfs/default.local
+      ansible.builtin.template:
+        src: default.local.j2
+        dest: "{{ __singcvmfs_tempdir.path }}/cvmfsexec/dist/etc/cvmfs/default.local"
+        mode: "0644"
+
+    - name: Create directories in dist
+      ansible.builtin.file:
+        path: "dist/{{ item.lstrip('/') }}"
+        state: directory
+        mode: "0755"
+      loop: "{{ singcvmfs_files | map(attribute='dest') | map('dirname') | unique }}"
+
+    - name: Copy files to dist
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "dist/{{ item.dest.lstrip('/') }}"
+        mode: "{{ item.mode | default('0644') }}"
+      loop: "{{ singcvmfs_files }}"
+
+    - name: Ensure singcvmfs parent directory exists
+      ansible.builtin.file:
+        path: "{{ singcvmfs_path | dirname }}"
+        state: directory
+        mode: "u+rwx"
+
+    - name: Build singcvmfs
+      ansible.builtin.command: "./makedist -s -o {{ singcvmfs_path }}"
+      args:
+        chdir: "{{ __singcvmfs_tempdir.path }}/cvmfsexec"
+
+  always:
+
+    - name: Remove singcvmfs build tempdir
+      ansible.builtin.file:
+        path: "{{ __singcvmfs_tempdir.path }}"
+        state: absent
+      diff: false
