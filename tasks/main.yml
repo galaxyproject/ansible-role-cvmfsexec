@@ -1,68 +1,72 @@
 ---
 
-- name: Check for singcvmfs existence
+- name: Check for cvmfsexec existence
   ansible.builtin.stat:
-    path: "{{ singcvmfs_path }}"
-  register: __singcvmfs_stat
+    path: "{{ cvmfsexec_path }}"
+  register: __cvmfsexec_stat
 
 - name: Build block
-  when: singcvmfs_force_build or (__singcvmfs_stat.stat.exists is false)
+  when: cvmfsexec_force_build or (__cvmfsexec_stat.stat.exists is false)
   block:
 
-    - name: Create singcvmfs build tempdir
+    - name: Create cvmfsexec build tempdir
       ansible.builtin.tempfile:
-        prefix: ansible-singcvmfs-build.
+        prefix: ansible-cvmfsexec-build.
         state: directory
-      register: __singcvmfs_tempdir
+      register: __cvmfsexec_tempdir
 
-    - name: Download and unarchive singcvmfs
+    - name: Download and unarchive cvmfsexec
       ansible.builtin.unarchive:
-        src: "{{ singcvmfs_url }}"
-        dest: "{{ __singcvmfs_tempdir.path }}"
+        src: "{{ cvmfsexec_url }}"
+        dest: "{{ __cvmfsexec_tempdir.path }}"
         remote_src: true
         extra_opts:
           - --strip-components=1
 
     - name: Run initial makedist
-      ansible.builtin.command: "./makedist -s default"
+      ansible.builtin.command: "./makedist {{ __cvmfsexec_makedist_args }} default"
       args:
-        chdir: "{{ __singcvmfs_tempdir.path }}"
+        chdir: "{{ __cvmfsexec_tempdir.path }}"
 
     - name: Set options in dist/etc/cvmfs/default.local
-      ansible.builtin.template:
-        src: default.local.j2
-        dest: "{{ __singcvmfs_tempdir.path }}/dist/etc/cvmfs/default.local"
+      ansible.builtin.copy:
+        content: |
+          {% for item in cvmfsexec_local_options %}
+          {{ item.key }}={{ item.value | quote }}
+          {% endfor %}
+        dest: "{{ __cvmfsexec_tempdir.path }}/dist/etc/cvmfs/default.local"
         mode: "0644"
 
     - name: Create directories in dist
       ansible.builtin.file:
-        path: "{{ __singcvmfs_tempdir.path }}/dist/{{ item.lstrip('/') }}"
+        path: "{{ __cvmfsexec_tempdir.path }}/dist/{{ item.lstrip('/') }}"
         state: directory
         mode: "0755"
-      loop: "{{ singcvmfs_files | map(attribute='dest') | map('dirname') | unique }}"
+      loop: "{{ cvmfsexec_files | map(attribute='dest') | map('dirname') | unique }}"
 
     - name: Copy files to dist
       ansible.builtin.copy:
-        src: "{{ item.src }}"
-        dest: "{{ __singcvmfs_tempdir.path }}/dist/{{ item.dest.lstrip('/') }}"
+        content: "{{ item.content | default(omit) }}"
+        src: "{{ item.src | default(omit) }}"
+        dest: "{{ __cvmfsexec_tempdir.path }}/dist/{{ item.dest.lstrip('/') }}"
         mode: "{{ item.mode | default('0644') }}"
-      loop: "{{ singcvmfs_files }}"
+      loop: "{{ cvmfsexec_files }}"
 
-    - name: Ensure singcvmfs parent directory exists
+    - name: Ensure cvmfsexec parent directory exists
       ansible.builtin.file:
-        path: "{{ singcvmfs_path | dirname }}"
+        path: "{{ cvmfsexec_path | dirname }}"
         state: directory
         mode: "u+rwx"
 
-    - name: Build singcvmfs
-      ansible.builtin.command: "./makedist -s -o {{ singcvmfs_path }}"
+    - name: Build cvmfsexec
+      ansible.builtin.command: "./makedist {{ __cvmfsexec_makedist_args }} -o {{ cvmfsexec_path }}"
       args:
-        chdir: "{{ __singcvmfs_tempdir.path }}"
+        chdir: "{{ __cvmfsexec_tempdir.path }}"
 
   always:
 
-    - name: Remove singcvmfs build tempdir
+    - name: Remove cvmfsexec build tempdir
       ansible.builtin.file:
-        path: "{{ __singcvmfs_tempdir.path }}"
+        path: "{{ __cvmfsexec_tempdir.path }}"
         state: absent
       diff: false

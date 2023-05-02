@@ -1,8 +1,8 @@
 galaxy_info:
   namespace: galaxyproject
-  role_name: singcvmfs
+  role_name: cvmfsexec
   author: The Galaxy Project
-  description: Build and deploy the singcvmfs utility from the cvmfsexec package
+  description: Build and deploy utilities from the cvmfsexec package
   company: The Galaxy Project
   license: MIT
   min_ansible_version: 2.10
