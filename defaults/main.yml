@@ -3,6 +3,7 @@
 cvmfsexec_url: "https://github.com/cvmfs/cvmfsexec/archive/refs/heads/master.tar.gz"
 cvmfsexec_path: "{{ ansible_env.HOME }}/bin/cvmfsexec"
 cvmfsexec_files: []
+cvmfsexec_source: "default"
 cvmfsexec_force_build: false
 cvmfsexec_build_singcvmfs: "{{ (cvmfsexec_path | basename) == 'singcvmfs' }}"
 

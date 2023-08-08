@@ -19,6 +19,7 @@ Role Variables
 Variable | Type | Description
 --- | --- | ---
 `cvmfsexec_path` | string | Path where `cvmfsexec` or `singcvmfs` should be installed (the value of the last path element determines which command is built)
+`cvmfsexec_source` | string | RPM source argument to `makedist -s` (default: `default`)
 `cvmfsexec_local_options` | list of item dictionaries | Variables to set in `/etc/cvmfs/default.local`
 `cvmfsexec_files` | list of dictionaries | Additional files to install relative to the package `dist/`
 `cvmfsexec_force_build` | boolean | Force build even if `cvmfsexec` already exists

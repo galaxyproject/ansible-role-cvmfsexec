@@ -24,7 +24,7 @@
           - --strip-components=1
 
     - name: Run initial makedist
-      ansible.builtin.command: "./makedist {{ __cvmfsexec_makedist_args }} default"
+      ansible.builtin.command: "./makedist {{ __cvmfsexec_makedist_args }} {{ cvmfsexec_source }}"
       args:
         chdir: "{{ __cvmfsexec_tempdir.path }}"
 
